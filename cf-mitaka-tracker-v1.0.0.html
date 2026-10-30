@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<!-- 
+==================================================
+ CrossFit Mitaka 3-Week Tracker
+ Version: 1.0.0
+ Date: 2026-10-30
+ Description: 3週間同一WODの成長記録＆コンディション分析Webアプリ
+==================================================
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>クロスフィット三鷹 3週間成長＆コンディショントラッカー v1.0.0</title>
+  <style>
+    :root {
+      --bg-dark: #121418;
+      --card-bg: #1e222d;
+      --accent: #ff6b00; /* 三鷹エナジーオレンジ */
+      --accent-green: #00e676;
+      --text-main: #f1f5f9;
+      --text-sub: #94a3b8;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 40px; }
+
+    header { text-align: center; margin-bottom: 20px; padding: 16px; background: var(--card-bg); border-radius: 12px; border-left: 4px solid var(--accent); position: relative; }
+    header h1 { font-size: 1.2rem; color: var(--accent); margin-bottom: 4px; }
+    header p { font-size: 0.8rem; color: var(--text-sub); }
+    .version-tag { position: absolute; top: 12px; right: 12px; font-size: 0.7rem; background: var(--border); color: var(--text-sub); padding: 2px 6px; border-radius: 4px; }
+
+    .card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); }
+    .card-title { font-size: 1rem; font-weight: bold; margin-bottom: 12px; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; }
+
+    label { display: block; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 6px; margin-top: 12px; }
+    input, select, textarea { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: #fff; font-size: 0.95rem; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+    .btn { display: block; width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 16px; text-align: center; }
+    .btn:hover { opacity: 0.9; }
+    .btn-sub { background: #334155; margin-top: 8px; font-size: 0.85rem; padding: 8px; }
+
+    .score-badge { display: inline-block; padding: 4px 8px; background: rgba(255, 107, 0, 0.2); color: var(--accent); border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+    .growth-up { color: var(--accent-green); font-weight: bold; }
+
+    .history-item { background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--accent); }
+    .advice-box { background: rgba(0, 230, 118, 0.1); border: 1px solid var(--accent-green); padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 0.88rem; line-height: 1.5; color: #e2e8f0; }
+    .advice-box strong { color: var(--accent-green); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="version-tag">ver 1.0.0</span>
+    <h1>CrossFit Mitaka 3-Week Tracker</h1>
+    <p>「成長の歓喜」を記録する3週間サイクル＆コンディション管理</p>
+  </header>
+
+  <!-- サンプル読み込みボタン -->
+  <button class="btn btn-sub" onclick="loadTakahiroSample()">⚡ Takahiroさんの3週間サンプルデータを試す</button>
+
+  <!-- データ入力カード -->
+  <div class="card" style="margin-top: 12px;">
+    <div class="card-title">📝 WOD記録＆コンディション入力</div>
+    
+    <label>メンバー名</label>
+    <input type="text" id="memberName" placeholder="例: Takahiro">
+
+    <div class="grid-2">
+      <div>
+        <label>週 (Week)</label>
+        <select id="weekSelect">
+          <option value="1">1週目 (Week 1)</option>
+          <option value="2">2週目 (Week 2)</option>
+          <option value="3">3週目 (Week 3)</option>
+        </select>
+      </div>
+      <div>
+        <label>実施時間帯</label>
+        <select id="timeOfDay">
+          <option value="夜">夜セッション</option>
+          <option value="午前">午前セッション</option>
+          <option value="午後">午後セッション</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <label>筋肉痛 (DOMS) レベル</label>
+        <select id="domsLevel">
+          <option value="1">1: なし (絶好調)</option>
+          <option value="2">2: 軽い張りがある</option>
+          <option value="3">3: 中程度の痛みあり</option>
+          <option value="4">4: 強い痛みあり</option>
+          <option value="5">5: 関節・可動域に影響</option>
+        </select>
+      </div>
+      <div>
+        <label>主観的運動強度 (RPE)</label>
+        <select id="rpeScore">
+          <option value="8">8: 適正高強度 (あと2回可能)</option>
+          <option value="9">9: 限界に近い (あと1回可能)</option>
+          <option value="10">10: 完全オールアウト</option>
+          <option value="7">7: 控えめ・フォーム重視</option>
+        </select>
+      </div>
+    </div>
+
+    <hr style="border-color: var(--border); margin-top: 16px;">
+
+    <div class="grid-3">
+      <div>
+        <label>スコア (Reps)</label>
+        <input type="number" id="repsInput" placeholder="271">
+      </div>
+      <div>
+        <label>DB重量 (kg)</label>
+        <input type="number" step="0.5" id="weightInput" placeholder="12.5">
+      </div>
+      <div>
+        <label>カルディオ種目</label>
+        <select id="cardioType">
+          <option value="Row">Row (ローイング)</option>
+          <option value="Bike">Bike (バイク)</option>
+          <option value="Ski">Ski (スキー)</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn" onclick="saveRecord()">結果を保存＆分析を生成</button>
+  </div>
+
+  <!-- 3週間成長比較 & アドバイス表示 -->
+  <div class="card" id="analysisCard" style="display:none;">
+    <div class="card-title">
+      <span>📈 3週間プログレス＆コーチアドバイス</span>
+      <span class="score-badge" id="memberBadge"></span>
+    </div>
+
+    <div id="historyList"></div>
+    <div id="adviceContainer"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'cf_mitaka_3week_records_v1';
+
+    function getRecords() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }
+
+    function saveRecord() {
+      const name = document.getElementById('memberName').value.trim();
+      if (!name) { alert('メンバー名を入力してください'); return; }
+
+      const record = {
+        name: name,
+        week: parseInt(document.getElementById('weekSelect').value),
+        timeOfDay: document.getElementById('timeOfDay').value,
+        doms: parseInt(document.getElementById('domsLevel').value),
+        rpe: parseInt(document.getElementById('rpeScore').value),
+        reps: parseInt(document.getElementById('repsInput').value) || 0,
+        weight: parseFloat(document.getElementById('weightInput').value) || 0,
+        cardio: document.getElementById('cardioType').value,
+        date: new Date().toLocaleDateString('ja-JP')
+      };
+
+      let records = getRecords();
+      records = records.filter(r => !(r.name === record.name && r.week === record.week));
+      records.push(record);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+
+      renderAnalysis(name);
+    }
+
+    function renderAnalysis(name) {
+      const records = getRecords().filter(r => r.name === name).sort((a,b) => a.week - b.week);
+      if (records.length === 0) return;
+
+      const card = document.getElementById('analysisCard');
+      const badge = document.getElementById('memberBadge');
+      const list = document.getElementById('historyList');
+      const adviceBox = document.getElementById('adviceContainer');
+
+      card.style.display = 'block';
+      badge.innerText = `${name} 選手`;
+
+      let listHtml = '';
+      records.forEach(r => {
+        listHtml += `
+          <div class="history-item">
+            <strong>Week ${r.week} (${r.date})</strong> — ${r.timeOfDay}<br>
+            スコア: <strong>${r.reps} reps</strong> | DB: <strong>${r.weight} kg</strong> (${r.cardio})<br>
+            <span style="font-size:0.8rem; color:var(--text-sub);">筋肉痛Lv: ${r.doms} | RPE: ${r.rpe}</span>
+          </div>
+        `;
+      });
+      list.innerHTML = listHtml;
+
+      const advice = generateCrossFitAdvice(records);
+      adviceBox.innerHTML = `
+        <div class="advice-box">
+          <strong>💡 コーチング・フィードバック (CrossFit & 生理学バックボーン)</strong><br><br>
+          ${advice}
+        </div>
+      `;
+    }
+
+    function generateCrossFitAdvice(records) {
+      const latest = records[records.length - 1];
+      const w1 = records.find(r => r.week === 1);
+      const w2 = records.find(r => r.week === 2);
+      const w3 = records.find(r => r.week === 3);
+
+      let text = '';
+
+      if (records.length === 1) {
+        text = `1週目の基準（Baseline）データ作成お疲れ様でした！初週は適正な重量選択とペーシング（Pacing）を掴むことが第一歩です。2週目は今回の ${latest.reps} reps を指標とし、MCI原則（Mechanics → Consistency → Intensity）に沿って動作の再現性を高めていきましょう！`;
+      } else if (records.length >= 2) {
+        const prev = records[records.length - 2];
+        const repDiff = latest.reps - prev.reps;
+        const weightDiff = latest.weight - prev.weight;
+
+        if (weightDiff > 0 && repDiff >= 0) {
+          text += `<span class="growth-up">素晴らしい成長です！</span> DB重量を ${prev.weight}kg から <strong>${latest.weight}kg へスケールアップ</strong>したにも関わらず、スコアを +${repDiff} reps 伸ばしました。<br>`;
+          text += `これはCrossFit L1/L2で重視される『フォームの再現性（Consistency）』が定着し、高負荷下での強度（Intensity）へ見事に適応できている証拠です。<br><br>`;
+        } else if (weightDiff > 0 && repDiff < 0) {
+          text += `負荷を ${latest.weight}kg に引き上げる果敢な挑戦、ナイスチャレンジです！高重量化に伴い回数は若干調整されましたが、体幹の安定性（Midline Stability）を保ったままやり切った価値は大きいです。<br><br>`;
+        } else if (repDiff > 0) {
+          text += `同一重量 (${latest.weight}kg) で <strong>+${repDiff} reps の大幅向上</strong>を達成！3週間同じWODを繰り返すことで、心肺機能とペース配分が掴めた『成長の歓喜』の実証です。<br><br>`;
+        } else {
+          text += `高負荷 (${latest.weight}kg) を維持し、${latest.reps} reps と高いパフォーマンスを再現できました。<br><br>`;
+        }
+
+        if (latest.doms >= 3) {
+          text += `<strong>【コンディション評価】</strong> 筋肉痛レベル ${latest.doms} の疲労が残る中、このパフォーマンスを維持できたのは体幹と精神的粘り（Mental Toughness）の強さです。無理なオーバーワークを避け、DOMS（遅発性筋肉痛）のリカバリーとしてアクティブリカバリー（軽めのウォーキング・動的ストレッチ）と水分補給を徹底してください。`;
+        } else {
+          text += `<strong>【コンディション評価】</strong> 筋肉痛レベル ${latest.doms} と良好な状態で<sup>${latest.timeOfDay}</sup>セッションを消化できています。神経系の適応が非常にスムーズです。`;
+        }
+      }
+
+      return text;
+    }
+
+    function loadTakahiroSample() {
+      const sample = [
+        { name: "Takahiro", week: 1, timeOfDay: "夜", doms: 2, rpe: 8, reps: 271, weight: 12.5, cardio: "Row", date: "10/15" },
+        { name: "Takahiro", week: 2, timeOfDay: "夜", doms: 2, rpe: 9, reps: 288, weight: 15.0, cardio: "Row", date: "10/22" },
+        { name: "Takahiro", week: 3, timeOfDay: "夜", doms: 3, rpe: 9, reps: 286, weight: 15.0, cardio: "Row", date: "10/29" }
+      ];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sample));
+      document.getElementById('memberName').value = "Takahiro";
+      renderAnalysis("Takahiro");
+    }
+  </script>
+</body>
+</html>
