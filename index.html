@@ -2,28 +2,29 @@
 <!-- 
 ==================================================
  CrossFit Mitaka 3-Week Tracker
- Version: 1.2.0
+ Version: 1.3.0
  Date: 2026-10-31
- Description: 曜日別WOD動的フィールド＆コーチ理念搭載 3週間成長トラッカー
+ Description: 初心者向け分かりやすい言葉表記＆数値比較動的フィードバック搭載 3週間成長トラッカー
 ==================================================
 -->
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>クロスフィット三鷹 3週間成長＆コンディショントラッカー v1.2.0</title>
+  <title>クロスフィット三鷹 3週間成長＆コンディショントラッカー v1.3.0</title>
   <style>
     :root {
       --bg-dark: #121418;
       --card-bg: #1e222d;
       --accent: #ff6b00; /* 三鷹エナジーオレンジ */
       --accent-green: #00e676;
+      --accent-blue: #38bdf8;
       --text-main: #f1f5f9;
       --text-sub: #94a3b8;
       --border: #334155;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-main); padding: 16px; max-width: 650px; margin: 0 auto; padding-bottom: 40px; }
 
     header { text-align: center; margin-bottom: 20px; padding: 16px; background: var(--card-bg); border-radius: 12px; border-left: 4px solid var(--accent); position: relative; }
@@ -43,23 +44,33 @@
     .wod-info-box { background: #0f172a; border: 1px solid var(--accent); padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.85rem; line-height: 1.4; color: #cbd5e1; }
     .wod-info-title { color: var(--accent); font-weight: bold; margin-bottom: 4px; }
 
-    .btn { display: block; width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 16px; text-align: center; }
-    .btn:hover { opacity: 0.9; }
+    .btn { display: block; width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 16px; text-align: center; transition: all 0.2s; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
     .btn-sub { background: #334155; margin-top: 8px; font-size: 0.85rem; padding: 8px; }
     .btn-skip { background: #475569; margin-top: 8px; font-size: 0.85rem; padding: 8px; }
 
     .score-badge { display: inline-block; padding: 4px 8px; background: rgba(255, 107, 0, 0.2); color: var(--accent); border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
     .growth-up { color: var(--accent-green); font-weight: bold; }
+    .highlight-val { color: var(--accent-blue); font-weight: bold; }
 
     .history-item { background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--accent); }
-    .advice-section { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.88rem; line-height: 1.5; }
-    .advice-section-title { color: var(--accent-green); font-weight: bold; margin-bottom: 6px; font-size: 0.95rem; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    
+    .advice-section { background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border); padding: 14px; border-radius: 8px; margin-top: 12px; font-size: 0.9rem; line-height: 1.6; }
+    .advice-section-title { color: var(--accent-green); font-weight: bold; margin-bottom: 8px; font-size: 0.95rem; border-bottom: 1px solid var(--border); padding-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+
+    .diff-box { background: rgba(56, 189, 248, 0.1); border: 1px dashed var(--accent-blue); padding: 10px; border-radius: 6px; margin: 8px 0; font-size: 0.88rem; }
+
+    /* 通知トースト */
+    #toast { visibility: hidden; min-width: 250px; background-color: var(--accent-green); color: #1e222d; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-weight: bold; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+    @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+    @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
   </style>
 </head>
 <body>
 
   <header>
-    <span class="version-tag">ver 1.2.0</span>
+    <span class="version-tag">ver 1.3.0</span>
     <h1>CrossFit Mitaka 3-Week Tracker</h1>
     <p>「成長の歓喜」を記録する3週間サイクル＆コンディション管理</p>
   </header>
@@ -69,30 +80,30 @@
 
   <!-- データ入力カード -->
   <div class="card" style="margin-top: 12px;">
-    <div class="card-title">📝 セルフスコア＆コンディション入力</div>
+    <div class="card-title">📝 スコア＆からだの調子を入力</div>
     
-    <label>メンバー名</label>
+    <label>お名前（またはニックネーム）</label>
     <input type="text" id="memberName" placeholder="例: Takahiro">
 
     <div class="grid-2">
       <div>
-        <label>週 (Week)</label>
+        <label>何週目？ (Week)</label>
         <select id="weekSelect">
-          <option value="1">1週目 (Week 1)</option>
-          <option value="2">2週目 (Week 2)</option>
-          <option value="3">3週目 (Week 3)</option>
+          <option value="1">1週目 (スタート週)</option>
+          <option value="2">2週目 (慣れてきた週)</option>
+          <option value="3">3週目 (締めくくり週)</option>
         </select>
       </div>
       <div>
-        <label>参加曜日 (WOD別)</label>
+        <label>参加曜日 (WOD)</label>
         <select id="daySelect" onchange="updateWodFields()">
-          <option value="月">月曜: Push Jerk & Sprint</option>
-          <option value="火">火曜: Double-Under & Burpee Grind</option>
-          <option value="水">水曜: Strict Pull-Ups & Reverse Lunges</option>
-          <option value="木" selected>木曜: Endurance & Core Engine</option>
-          <option value="金">金曜: NANCY (Overhead Squat & Run)</option>
-          <option value="土">土曜: Deadlift & Push-Up Couplet</option>
-          <option value="日">日曜: Heavy Front Squat 3RM</option>
+          <option value="月">月曜: プッシュジャーク & スプリント</option>
+          <option value="火">火曜: 二重跳び & バーピー & ローイング</option>
+          <option value="水">水曜: 懸垂 & 踏み込みランジ</option>
+          <option value="木" selected>木曜: 有酸素 & 体幹 (バイク/DB/ホロー)</option>
+          <option value="金">金曜: ナンシー (頭上スクワット & ラン)</option>
+          <option value="土">土曜: デッドリフト & 腕立て伏せ</option>
+          <option value="日">日曜: フロントスクワット 3回最高重量</option>
         </select>
       </div>
     </div>
@@ -100,43 +111,43 @@
     <!-- 選択曜日のWOD概要ボックス -->
     <div class="wod-info-box" id="wodInfoBox">
       <div class="wod-info-title" id="wodTitle">【木曜】Endurance & Core Engine</div>
-      <div id="wodDesc">バイク、DBターキッシュゲットアップ (12.5/15kg)、ホローロックの時間制インターバル。</div>
+      <div id="wodDesc">バイク、ダンベル・ターキッシュゲットアップ (12.5/15kg)、ホローロックの時間制インターバル。</div>
     </div>
 
     <div class="grid-2">
       <div>
-        <label>実施時間帯</label>
+        <label>参加した時間帯</label>
         <select id="timeOfDay">
-          <option value="夜">夜セッション</option>
-          <option value="午前">午前セッション</option>
-          <option value="午後">午後セッション</option>
+          <option value="夜">夜クラス</option>
+          <option value="午前">朝・午前クラス</option>
+          <option value="午後">昼・午後クラス</option>
         </select>
       </div>
       <div>
-        <label>主観的運動強度 (RPE)</label>
+        <label>運動のきつさ感 (10段階)</label>
         <select id="rpeScore">
-          <option value="8">8: 適正高強度 (あと2回可能)</option>
-          <option value="9">9: 限界に近い (あと1回可能)</option>
-          <option value="10">10: 完全オールアウト</option>
-          <option value="7">7: 控えめ・フォーム優先</option>
+          <option value="8">8: しっかりきつい (あと2回できる余裕)</option>
+          <option value="9">9: かなり限界に近い (あと1回できる)</option>
+          <option value="10">10: 全力出し切った (余裕なし)</option>
+          <option value="7">7: 少し余裕あり (フォーム重視)</option>
         </select>
       </div>
     </div>
 
     <div class="grid-2">
       <div>
-        <label>筋肉痛 (DOMS) レベル</label>
+        <label>筋肉痛・体の張り</label>
         <select id="domsLevel">
-          <option value="1">1: なし (絶好調)</option>
-          <option value="2">2: 軽い張りがある</option>
-          <option value="3">3: 中程度の痛みあり</option>
-          <option value="4">4: 強い痛みあり</option>
-          <option value="5">5: 関節・可動域に影響</option>
+          <option value="1">1: 全くない (絶好調)</option>
+          <option value="2">2: 少し張りがある程度</option>
+          <option value="3">3: 普通に筋肉痛がある</option>
+          <option value="4">4: かなり強い筋肉痛がある</option>
+          <option value="5">5: 動きづらいほど強い痛み</option>
         </select>
       </div>
       <div>
-        <label>コンディション備考</label>
-        <input type="text" id="memoInput" placeholder="例: 肩にやや張りあり、睡眠良好">
+        <label>一言メモ (コンディション)</label>
+        <input type="text" id="memoInput" placeholder="例: 肩が少し張っている、睡眠バッチリ">
       </div>
     </div>
 
@@ -147,14 +158,14 @@
       <!-- JavaScriptで動的生成 -->
     </div>
 
-    <button class="btn" onclick="saveRecord(false)">結果を保存＆分析を生成</button>
-    <button class="btn btn-skip" onclick="saveRecord(true)">☕ 今週は不参加 (リカバリー週として記録)</button>
+    <button class="btn" onclick="saveRecord(false)">結果を保存して分析を見る！</button>
+    <button class="btn btn-skip" onclick="saveRecord(true)">☕ 今週はお休み (お休み・お疲れさま週として記録)</button>
   </div>
 
   <!-- 3週間成長比較 & アドバイス表示 -->
   <div class="card" id="analysisCard" style="display:none;">
     <div class="card-title">
-      <span>📈 3週間プログレス＆コーチアドバイス</span>
+      <span>📈 3週間の成長グラフ＆アドバイス</span>
       <span class="score-badge" id="memberBadge"></span>
     </div>
 
@@ -162,59 +173,62 @@
     <div id="adviceContainer"></div>
   </div>
 
-  <script>
-    const STORAGE_KEY = 'cf_mitaka_3week_records_v1_2';
+  <!-- 保存通知トースト -->
+  <div id="toast">✅ 記録を保存し、分析を更新しました！</div>
 
-    // 曜日ごとのWOD定義データ
+  <script>
+    const STORAGE_KEY = 'cf_mitaka_3week_records_v1_3';
+
+    // 曜日ごとのWOD定義データ（わかりやすい用語表現）
     const WOD_DATA = {
       '月': {
-        title: '【月曜】Pure Power & Sprint Engine',
-        desc: '高重量プッシュジャーク × 100m爆発的スプリント。5分ごと×5セット。',
-        field1: { label: 'Jerk重量 (kg)', id: 'val1', type: 'number', placeholder: '60' },
-        field2: { label: 'スプリント平均 (秒)', id: 'val2', type: 'number', placeholder: '15.5' },
-        field3: { label: 'セット完遂', id: 'val3', type: 'text', placeholder: '5/5セット' }
+        title: '【月曜】高重量ジャーク × 爆発的スプリント',
+        desc: '頭上に重りを挙げるプッシュジャーク ＋ 100mダッシュ。5分ごと×5セット。',
+        field1: { label: 'ジャーク重量 (kg)', id: 'val1', type: 'number', placeholder: '60' },
+        field2: { label: 'ダッシュ平均 (秒)', id: 'val2', type: 'number', placeholder: '15.5' },
+        field3: { label: '達成セット数', id: 'val3', type: 'text', placeholder: '5/5セット' }
       },
       '火': {
-        title: '【火曜】High-Volume Engine: Double-Under & Burpee',
-        desc: '20R (DU & Burpee) ＋ 0:00/10:00での500m Row割り込み。',
-        field1: { label: 'スコア (Time/Reps)', id: 'val1', type: 'text', placeholder: '21:30' },
-        field2: { label: 'Rowペース (分/500m)', id: 'val2', type: 'text', placeholder: '1:55' },
-        field3: { label: 'DU連続最高 (reps)', id: 'val3', type: 'number', placeholder: '50' }
+        title: '【火曜】二重跳び & バーピー & ローイング',
+        desc: '二重跳びとバーピーの連打 ＋ 途中で漕ぎマシン(Row)の割り込み。',
+        field1: { label: 'ゴールタイム または 回数', id: 'val1', type: 'text', placeholder: '21:30' },
+        field2: { label: 'ローイングペース (分/500m)', id: 'val2', type: 'text', placeholder: '1:55' },
+        field3: { label: '二重跳び最高連続 (回)', id: 'val3', type: 'number', placeholder: '50' }
       },
       '水': {
-        title: '【水曜】Heavy Upper/Lower Engine',
-        desc: 'ストリクト・プルアップ (30 reps) ＋ フロントラック・リバースランジ。',
-        field1: { label: 'タイム (分:秒)', id: 'val1', type: 'text', placeholder: '09:45' },
-        field2: { label: 'ランジ重量 (kg)', id: 'val2', type: 'number', placeholder: '40' },
-        field3: { label: 'プルアップ方式', id: 'val3', type: 'text', placeholder: 'Strict / Band' }
+        title: '【水曜】懸垂 & 重り付きランジ',
+        desc: '自分の体重を引く懸垂(30回) ＋ 重りを担いで一歩踏み出すランジ。',
+        field1: { label: '終了タイム (分:秒)', id: 'val1', type: 'text', placeholder: '09:45' },
+        field2: { label: 'ランジの重さ (kg)', id: 'val2', type: 'number', placeholder: '40' },
+        field3: { label: '懸垂のやり方', id: 'val3', type: 'text', placeholder: '自重 / バンド補助' }
       },
       '木': {
-        title: '【木曜】Endurance & Core Engine',
-        desc: 'バイク ＋ DBターキッシュゲットアップ (12.5/15kg) ＋ ホローロック。4R。',
-        field1: { label: '合計スコア (Reps)', id: 'val1', type: 'number', placeholder: '271' },
-        field2: { label: 'DB重量 (kg)', id: 'val2', type: 'number', placeholder: '12.5' },
-        field3: { label: 'カルディオ種目', id: 'val3', type: 'select', options: ['Row', 'Bike', 'Ski'] }
+        title: '【木曜】有酸素 & 体幹コントロール',
+        desc: 'バイク ＋ ダンベル立ち上がり(12.5/15kg) ＋ ホローロック体幹保持。4ラウンド。',
+        field1: { label: '合計回数 (reps)', id: 'val1', type: 'number', placeholder: '271' },
+        field2: { label: 'ダンベルの重さ (kg)', id: 'val2', type: 'number', placeholder: '12.5' },
+        field3: { label: '有酸素マシン', id: 'val3', type: 'select', options: ['Row(漕ぎ)', 'Bike(自転車)', 'Ski(スキー)'] }
       },
       '金': {
-        title: '【金曜】Benchmark Conditioning: NANCY',
-        desc: '5R: 400m Run ＋ 15 Overhead Squats (43/30kg)。心肺＆頭上安定性。',
-        field1: { label: 'タイム (分:秒)', id: 'val1', type: 'text', placeholder: '14:20' },
-        field2: { label: 'OHS使用重量 (kg)', id: 'val2', type: 'number', placeholder: '30' },
-        field3: { label: 'OHSセット分割', id: 'val3', type: 'text', placeholder: 'Unbroken / 8-7' }
+        title: '【金曜】NANCY (頭上スクワット & 400mラン)',
+        desc: '400m走 ＋ 重りを頭上に挙げてスクワット(15回) を5セット。',
+        field1: { label: '終了タイム (分:秒)', id: 'val1', type: 'text', placeholder: '14:20' },
+        field2: { label: 'スクワットの重さ (kg)', id: 'val2', type: 'number', placeholder: '30' },
+        field3: { label: 'スクワットの分け方', id: 'val3', type: 'text', placeholder: '休まず / 2回に分けた' }
       },
       '土': {
-        title: '【土曜】Muscular Endurance: Deadlift & Push-Up',
-        desc: '4R: 25 Deadlifts (60/85kg) ＋ 25 Push-Ups。計各100回筋持久力。',
-        field1: { label: 'タイム (分:秒)', id: 'val1', type: 'text', placeholder: '16:50' },
-        field2: { label: 'DL重量 (kg)', id: 'val2', type: 'number', placeholder: '60' },
-        field3: { label: 'Push-Up変形', id: 'val3', type: 'text', placeholder: 'Rx / Knee' }
+        title: '【土曜】デッドリフト & 腕立て伏せ',
+        desc: '床から重りを引き上げるデッドリフト ＋ 腕立て伏せ。筋持久力勝負！',
+        field1: { label: '終了タイム (分:秒)', id: 'val1', type: 'text', placeholder: '16:50' },
+        field2: { label: 'デッドリフトの重さ (kg)', id: 'val2', type: 'number', placeholder: '60' },
+        field3: { label: '腕立て伏せの形', id: 'val3', type: 'text', placeholder: 'つま先 / 膝つき' }
       },
       '日': {
-        title: '【日曜】Pure Strength: Heavy Front Squat 3RM',
-        desc: 'フロントスクワット 3RM 挑戦 ＋ ピストル/ランジ スキルワーク。',
-        field1: { label: 'FS 3RM重量 (kg)', id: 'val1', type: 'number', placeholder: '80' },
-        field2: { label: 'ピストル達成数', id: 'val2', type: 'number', placeholder: '10' },
-        field3: { label: 'フォーム感触', id: 'val3', type: 'text', placeholder: '深さGood' }
+        title: '【日曜】フロントスクワット 3回最高重量挑戦',
+        desc: '胸の前で重りを担ぐスクワットの3回限界に挑戦 ＋ 片足スクワット練習。',
+        field1: { label: 'スクワット3回挙がった重さ (kg)', id: 'val1', type: 'number', placeholder: '80' },
+        field2: { label: '片足スクワットできた回数', id: 'val2', type: 'number', placeholder: '10' },
+        field3: { label: 'しゃがみの深さ・感触', id: 'val3', type: 'text', placeholder: 'しっかり深くしゃがめた' }
       }
     };
 
@@ -245,9 +259,16 @@
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     }
 
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.className = 'show';
+      setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000);
+    }
+
     function saveRecord(isSkip) {
       const name = document.getElementById('memberName').value.trim();
-      if (!name) { alert('メンバー名を入力してください'); return; }
+      if (!name) { alert('お名前を入力してください！'); return; }
 
       const day = document.getElementById('daySelect').value;
       const week = parseInt(document.getElementById('weekSelect').value);
@@ -265,21 +286,28 @@
       };
 
       if (!isSkip) {
-        record.val1 = document.getElementById('val1').value || '0';
-        record.val2 = document.getElementById('val2').value || '0';
-        record.val3 = document.getElementById('val3').value || '-';
+        record.val1 = document.getElementById('val1').value.trim() || '0';
+        record.val2 = document.getElementById('val2').value.trim() || '0';
+        record.val3 = document.getElementById('val3').value.trim() || '-';
       } else {
-        record.val1 = '不参加';
+        record.val1 = 'お休み';
         record.val2 = '0';
-        record.val3 = 'リカバリー週';
+        record.val3 = 'リフレッシュ週';
       }
 
       let records = getRecords();
+      // 同一人物・同一曜日・同一週の記録を上書き保存
       records = records.filter(r => !(r.name === record.name && r.day === record.day && r.week === record.week));
       records.push(record);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 
+      showToast(`✅ Week ${week} (${day}曜) の記録を保存しました！`);
       renderAnalysis(name, day);
+
+      // 分析表示位置へスムーズスクロール
+      setTimeout(() => {
+        document.getElementById('analysisCard').scrollIntoView({ behavior: 'smooth' });
+      }, 300);
     }
 
     function renderAnalysis(name, day) {
@@ -292,91 +320,134 @@
       const adviceContainer = document.getElementById('adviceContainer');
 
       card.style.display = 'block';
-      badge.innerText = `${name} 選手 (${day}曜WOD)`;
+      badge.innerText = `${name} さんの記録 (${day}曜日)`;
 
       let listHtml = '';
       records.forEach(r => {
         listHtml += `
           <div class="history-item">
-            <strong>Week ${r.week} (${r.date})</strong> — ${r.timeOfDay}<br>
-            ${r.isSkip ? '<span style="color:#f59e0b; font-weight:bold;">☕ 今週は不参加 (リカバリー週)</span>' : 
-              `記録: <strong>${r.val1}</strong> | 負荷/詳細: <strong>${r.val2}</strong> (${r.val3})`}<br>
-            <span style="font-size:0.8rem; color:var(--text-sub);">筋肉痛Lv: ${r.doms} | RPE: ${r.rpe} ${r.memo ? '| メモ: '+r.memo : ''}</span>
+            <strong>【${r.week}週目】(${r.date})</strong> — ${r.timeOfDay}<br>
+            ${r.isSkip ? '<span style="color:#f59e0b; font-weight:bold;">☕ 今週はお休み (リフレッシュ・リカバリー)</span>' : 
+              `記録: <span class="highlight-val">${r.val1}</span> | 重さ/詳細: <strong>${r.val2}</strong> (${r.val3})`}<br>
+            <span style="font-size:0.8rem; color:var(--text-sub);">筋肉痛レベル: ${r.doms}/5 | きつさ感: ${r.rpe}/10 ${r.memo ? '| メモ: '+r.memo : ''}</span>
           </div>
         `;
       });
       list.innerHTML = listHtml;
 
-      const adviceHtml = generateMitakaCoachAdvice(records, day);
+      const adviceHtml = generateEasyMitakaAdvice(records, day);
       adviceContainer.innerHTML = adviceHtml;
     }
 
-    // 三鷹コーチの指導理念・CrossFit L1/L2理論に基づくアドバイス生成エンジン
-    function generateMitakaCoachAdvice(records, day) {
+    // 初心者にも直感的に伝わる易しい表現でのアドバイス生成
+    function generateEasyMitakaAdvice(records, day) {
       const activeRecords = records.filter(r => !r.isSkip);
       const latest = records[records.length - 1];
 
+      if (activeRecords.length === 0) {
+        return `
+          <div class="advice-section">
+            <div class="advice-section-title">☕ お疲れさま・リフレッシュ週</div>
+            しっかり身体を休めることも、トレーニングで成果を出す大切なステップです！来週からの挑戦に向けて、元気をチャージしてくださいね。
+          </div>`;
+      }
+
+      let diffHtml = '';
       let trendText = '';
       let condText = '';
       let praiseText = '';
-      let adviceText = '';
+      let nextTipText = '';
 
-      if (activeRecords.length === 0) {
-        return `<div class="advice-section"><div class="advice-section-title">☕ リカバリー週の記録</div>しっかり身体を休めることもCrossFitの『プログラム（計画的リカバリー）』の重要な要素です。来週の挑戦に向け充電完了ですね！</div>`;
-      }
-
-      if (records.length === 1) {
-        trendText = `3週間スタイルの第1歩（基準値設定）完了です！『月4〜8回通う皆さんに確実な成長を感じてほしい』という三鷹の思いの通り、初週は適正な重量選択とペーシングを身体に馴染ませることが目的です。`;
-        praiseText = `高強度の中でフォーム（Mechanics）を崩さず、最後まで安定して消化できました。`;
-        adviceText = `2週目は今回の数値を指標にし、15kgへの重量アップやタイム更新など『自分なりのハードモード（難易度アップ）』を設定して挑みましょう！`;
-      } else {
+      // 数値変化の動的計算（1週目からの変化）
+      if (activeRecords.length >= 2) {
         const first = activeRecords[0];
         const last = activeRecords[activeRecords.length - 1];
 
-        trendText = `1週目から${records.length}週目にかけた成長の軌跡が見事に可視化されています。同じWODを3週間繰り返すことで、心肺機能の適応と動作のペース配分（Pacing）が確実に身体に染み込んでいます！`;
-        
-        praiseText = `CrossFit Level 1/2で最も重要視される『MCI原則（Mechanics → Consistency → Intensity）』を体現されています。特にフォームの再現性（Consistency）が高まったことで、高負荷下でもブレない強さが生まれています。`;
+        let numVal1First = parseFloat(first.val1) || 0;
+        let numVal1Last = parseFloat(last.val1) || 0;
+        let numVal2First = parseFloat(first.val2) || 0;
+        let numVal2Last = parseFloat(last.val2) || 0;
 
-        if (latest.doms >= 4) {
-          condText = `筋肉痛レベル${latest.doms}（高い疲労度）の中でのセッションでした。無理なオーバーワークを避け、自分のコンディションに合わせたペースコントロールができたのは非常にスマートな判断です。`;
-          adviceText = `積極的休養（アクティブリカバリー）として軽めの散歩やストレッチ、十分な水分・タンパク質補給を優先してください。`;
-        } else {
-          condText = `${latest.timeOfDay}セッションでのパフォーマンスが安定しています。RPE${latest.rpe}と適切な運動強度で追込めており、神経系の順応が非常にスムーズです。`;
-          adviceText = `3週間サイクルを通じて掴んだ『ペース配分と動作のコツ』は他の曜日や日常生活の動作にも必ず活きてきます！次の新しい3週間サイクルへの挑戦も楽しみですね！`;
+        let diff1Text = '';
+        let diff2Text = '';
+
+        if (numVal1First > 0 && numVal1Last > 0) {
+          let diff1 = numVal1Last - numVal1First;
+          if (diff1 > 0) diff1Text = `回数/スコア: <span class="growth-up">+${diff1} アップ！</span>`;
+          else if (diff1 < 0) diff1Text = `回数/スコア: <span style="color:#f59e0b;">${diff1} (重さを優先した調整)</span>`;
+          else diff1Text = `回数/スコア: 1週目の数値をしっかり維持！`;
         }
+
+        if (numVal2First > 0 && numVal2Last > 0) {
+          let diff2 = numVal2Last - numVal2First;
+          if (diff2 > 0) diff2Text = `重さ/負荷: <span class="growth-up">+${diff2}kg アップ！(チャレンジ成功)</span>`;
+          else if (diff2 < 0) diff2Text = `重さ/負荷: ${diff2}kg (フォーム重視の調整)`;
+          else diff2Text = `重さ/負荷: ${numVal2Last}kg をキープ！`;
+        }
+
+        diffHtml = `
+          <div class="diff-box">
+            <strong>📊 1週目 (${first.val1} / ${first.val2}) からの変化：</strong><br>
+            ${diff1Text ? '・' + diff1Text + '<br>' : ''}
+            ${diff2Text ? '・' + diff2Text : ''}
+          </div>
+        `;
+      }
+
+      if (records.length === 1) {
+        trendText = `3週間プログラムの第1歩、お疲れ様でした！初週は『自分に合った重さ選び』と『最後までバテないペース探し』が一番の目的です。素晴らしいスタートが切れました！`;
+        praiseText = `まずは運動の基本ステップである「正しいフォームを保つこと」を意識して、最後まで動ききれたことが素晴らしいです。`;
+        nextTipText = `2週目は、今日の記録を基準にして「重さを少し増やす」か「途中の休憩を短くする」など、自分なりのプチ挑戦をしてみましょう！`;
+      } else {
+        trendText = `同じメニューを3週間繰り返すことで、身体が動作に慣れ、「どのペースで動けばバテないか」が自然と掴めてきています！`;
+        
+        praiseText = `クロスフィットで大切にされている**「①綺麗なフォーム → ②慣れ・安定感 → ③強度のチャレンジ」**という成長ステップをしっかり踏めています。重さや回数に挑戦しつつも、動きの丁寧さを失わない姿が素晴らしいです！`;
+
+        nextTipText = `3週間でつかんだ「からだの使い方」と「ペース配分」は、これから先のトレーニングでもずっと役に立つ大切な財産になります！`;
+      }
+
+      // 体調・時間帯のアドバイス
+      if (latest.doms >= 4) {
+        condText = `今日は筋肉痛や身体の張りが強い（レベル${latest.doms}）中でのご参加でしたね！痛みを無理して押して数値を追うのではなく、今の体調に合わせて安全にコントロールできたのは**最高に賢い判断**です。今夜はしっかりお風呂で温まり、水分を摂って休んでください。`;
+      } else if (latest.doms === 3) {
+        condText = `適度な筋肉痛（レベル3）がある中でも、集中力を切らさずにしっかり動けました。使った筋肉のストレッチを念入りに行ってくださいね。`;
+      } else {
+        condText = `筋肉痛レベル${latest.doms}と、からだのコンディションがとても良い状態で<sup>${latest.timeOfDay}</sup>のクラスを消化できています！動きのキレも抜群です。`;
       }
 
       return `
         <div class="advice-section">
-          <div class="advice-section-title">🌟 3週間の成長軌跡 (三鷹スタイル)</div>
+          <div class="advice-section-title">🌟 3週間の成長グラフと変化</div>
           ${trendText}
+          ${diffHtml}
         </div>
         <div class="advice-section">
-          <div class="advice-section-title">⏰ 時間帯＆コンディション生理学分析</div>
-          ${condText}
-        </div>
-        <div class="advice-section">
-          <div class="advice-section-title">👍 ここが素晴らしい！（コーチからの称賛）</div>
+          <div class="advice-section-title">👍 ここが素晴らしい！（コーチからのコメント）</div>
           ${praiseText}
         </div>
         <div class="advice-section">
-          <div class="advice-section-title">💡 次回の成長に向けたアドバイス</div>
-          ${adviceText}
+          <div class="advice-section-title">🧘 からだのケア＆時間帯のアドバイス</div>
+          ${condText}
+        </div>
+        <div class="advice-section">
+          <div class="advice-section-title">🎯 次へのステップアドバイス</div>
+          ${nextTipText}
         </div>
       `;
     }
 
     function loadTakahiroSample() {
       const sample = [
-        { name: "Takahiro", week: 1, day: "木", timeOfDay: "夜", doms: 2, rpe: 8, val1: "271", val2: "12.5", val3: "Row", isSkip: false, date: "10/15" },
-        { name: "Takahiro", week: 2, day: "木", timeOfDay: "夜", doms: 2, rpe: 9, val1: "288", val2: "15.0", val3: "Row", isSkip: false, date: "10/22" },
-        { name: "Takahiro", week: 3, day: "木", timeOfDay: "夜", doms: 3, rpe: 9, val1: "286", val2: "15.0", val3: "Row", isSkip: false, date: "10/29" }
+        { name: "Takahiro", week: 1, day: "木", timeOfDay: "夜クラス", doms: 2, rpe: 8, val1: "271", val2: "12.5", val3: "Row(漕ぎ)", isSkip: false, date: "10/15" },
+        { name: "Takahiro", week: 2, day: "木", timeOfDay: "夜クラス", doms: 2, rpe: 9, val1: "288", val2: "15.0", val3: "Row(漕ぎ)", isSkip: false, date: "10/22" },
+        { name: "Takahiro", week: 3, day: "木", timeOfDay: "夜クラス", doms: 3, rpe: 9, val1: "286", val2: "15.0", val3: "Row(漕ぎ)", isSkip: false, date: "10/29" }
       ];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(sample));
       document.getElementById('memberName').value = "Takahiro";
       document.getElementById('daySelect').value = "木";
       updateWodFields();
       renderAnalysis("Takahiro", "木");
+      showToast("⚡ Takahiroさんのサンプルデータ（3週間分）を読み込みました！");
     }
 
     // 初期化
